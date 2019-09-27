@@ -7,12 +7,11 @@ app = Flask(__name__)
 def webhook():
     if request.method == 'POST':
         print(request.json)
-        # Insert code here to post to API
-        # post_to_api()
+        
         return '', 200
     else:
         abort(400)
 
 
 if __name__ == '__main__':
-    app.run("192.168.1.2")
+    app.run("10.0.5.29")

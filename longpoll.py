@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 from seleniumrequests import Chrome
+from datetime import datetime
 from config import *
 import time
 
@@ -24,30 +25,33 @@ btn_xpath = '//*[@id="loginFormInside"]/div[4]/input'
 login_btn = webdriver.find_element_by_xpath(btn_xpath)
 login_btn.click()
 
-
-
 # Get historical data
-ids = ["488933", "488939"]#, "488935", "488937"] #Add more sensor ids as you please. comma delimited.
+ids = ["488933", "488939", "488935", "488937", "488942"] #Add more sensor ids as you please. comma delimited.
 dictionaryOfData = {}
 tables = {
-    "488933" : "temperature",
+    "488933" : "temperatures",
     "488939" : "light",
     "488935" : "doors",
-    "488937" : "motion"
+    "488937" : "motion",
+    "488942" : "vibration"
 }
 
 def post_to_api(data,table):
     print("POSTing data to api")
     # django api
-    apiUrl = f"http://192.168.1.2:8000/api/{table}/" #Change my IP here
+    apiUrl = f"http://10.0.5.29:8000/api/{table}/" #Change my IP here
     auth = ("admin","admin123")
 
     for item in data:
-        dic = {"dateRead":item[0],"reading":item[1]}
+        mydt = datetime.strptime(item[0], '%m/%d/%Y %I:%M %p')
+        #print(mydt)
+        dic = {"dateRead":mydt,"reading":item[1]}
 
         try:
-            r=requests.post(apiUrl,auth=auth,json=dic) # POST method
-        except:
+            r=requests.post(apiUrl,auth=auth,data=dic) # POST method
+            print(r)
+        except Exception as e:
+            print(e)
             print("Already exists..maybe?")
 
 def get_data(tables):
@@ -67,12 +71,12 @@ def get_data(tables):
 
         
         a=list(zip(formatDate,formatValue))[:10]
-        if ID == "488935":
-            print(a)
-    #     print(a)
-    #     # Save to dictionary using id as key and a (array) as value
+        # if ID == "488933":
+        #     print(a)
+        print(a)
+        # Save to dictionary using id as key and a (array) as value
         dictionaryOfData[ID] = a
-
+        
         # POST
         post_to_api(a, tables[ID])
 
